@@ -1,44 +1,87 @@
-const mineImage = "images/bomb-5.png";
+const mineImage = {
+    image: "images/bomb-5.png",
+    identifier: "mine"
+};
 const minesBoard = document.getElementById("minesweeper");
 let mines = []
+let selected = null
+let cont = 0
 
 function minesBuilder() {
-
-    let board = document.createElement("div");
-    board.className = '1'
-
-    let front = document.createElement("img");
-    front.className = '2'
-    board.appendChild(front)
-
-    let back = document.createElement("img");
-    back.src = mineImage;
-    back.className = '3';
-
-    let square = document.createElement("div");
-    square.innerText = 'VAZIO';
-    square.className = '4';
-
-    mines.forEach(function(row) {
-        row.forEach(function(mine) {
-            let result = (mine == true) ? createBomb() : createEmpty();
-            board.appendChild(result);
+    mines.forEach(function (row) {
+        row.forEach(function (mine) {
+            let result = mine ? createBomb() : createEmpty();
+            result.addEventListener("click", flip);
+            minesBoard.appendChild(result);
         });
     });
 
-    minesBoard.appendChild(board);
-
 }
+
+function flip() {
+    this.classList.toggle("square--flip");
+    this.removeEventListener("click", flip);
+    selectedSquare(this)
+}
+
+function selectedSquare(selected) {
+    mineFound(selected)
+}
+
+function mineFound(selected) {
+    if (selected.dataset.mine == "mine") {
+        setTimeout(gameOver, 1500);
+    } else {
+        cont++
+        contEmptySquare(cont)
+    }
+}
+function contEmptySquare(cont) {
+    if (cont == 71) {
+        gameWon()
+    }
+}
+
+function gameWon() {
+    window.location.href = "../Minesweeper/gameWon.html";
+}
+
+function gameOver() {
+    window.location.href = "../Minesweeper/gameOver.html";
+}
+
 function createBomb() {
-    
+    let square = document.createElement("div")
+    square.className = "square"
+    square.dataset.mine = mineImage.identifier
+    console.log(square);
+
+    let back = document.createElement("img");
+    back.className = 'back--face';
+    back.src = mineImage.image
+    square.appendChild(back)
+
+    let front = document.createElement("img");
+    front.className = 'front--face';
+    square.appendChild(front)
+    return square
 }
 
-function createEmpty(){
-    
+function createEmpty() {
+    let square = document.createElement("div")
+    square.className = "square"
+
+    let back = document.createElement("img");
+    back.className = 'back--face';
+    square.appendChild(back)
+
+    let front = document.createElement("img");
+    front.className = 'front--face';
+    square.appendChild(front)
+    return square
 }
 
 function createMines() {
-
     for (let i = 0; i < 9; i++) {
         mines.push([])
         for (let j = 0; j < 9; j++) {
@@ -48,13 +91,18 @@ function createMines() {
     for (let i = 0; i < 10; i++) {
         let num1 = Math.floor(Math.random() * 9)
         let num2 = Math.floor(Math.random() * 9)
-        mines.map(function (row, index) {
-            if (index == num1) {
-                row[num2] = !row[num2] ? true : null
-            }
-        })
+        if (mines[num1][num2]) {
+            num1 = Math.floor(Math.random() * 9)
+            num2 = Math.floor(Math.random() * 9)
+        }
+        mines[num1][num2] = true;
     }
 }
+
+(function initializeGame() {
+    createMines()
+    minesBuilder()
+})()
 
 // function randomCards() {
 //     
