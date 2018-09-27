@@ -2,20 +2,22 @@
     display: flex;
     justify-content: center;
 }
-.back--face{
+.back--face, .front--face {
     width: 80px;
     height: 80px;
     margin:0;
-    transform: rotateY(180deg);
-    backface-visibility: hidden;
     position: absolute;
+    left:0;
+    top:0;
+    
+}
+.back--face{
+    transform: rotateY(180deg);
+    text-align: center;
 }
 .front--face{
-    width: 80px;
-    height: 80px;
-    background: grey;
-    transform: rotateY(0deg);
     backface-visibility: hidden;
+    background: grey;
     object-fit: contain;
 }
 .gameover__content{
@@ -51,6 +53,7 @@
     width: 80px;
     height: 80px;
     border: 0.5px solid;
+    position: relative;
 }
 .square--flip{
     transform: rotateY(180deg);

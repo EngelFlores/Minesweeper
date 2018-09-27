@@ -1,6 +1,7 @@
 const mineImage = {
     image: "images/bomb-5.png",
-    identifier: "mine"
+    identifier: "mine",
+    isOpen: "open"
 };
 const minesBoard = document.getElementById("minesweeper");
 let mines = []
@@ -10,10 +11,17 @@ let cont = 0
 function minesBuilder() {
     mines.forEach(function (row, x) {
         row.forEach(function (mine, y) {
-            let result = (mine == -1) ? createBomb() : createEmpty(mine);
-            if (mine == -1) { mineCounter(x, y) }
+            let result = (mine == -1) ? createBomb(x, y) : createEmpty(mine, x, y);
             result.addEventListener("click", flip);
             minesBoard.appendChild(result);
+        });
+    });
+}
+
+function coordinates() {
+    mines.forEach(function (row, x) {
+        row.forEach(function (mine, y) {
+            if (mine == -1) { mineCounter(x, y) }
         });
     });
 }
@@ -22,6 +30,37 @@ function flip() {
     this.classList.toggle("square--flip");
     this.removeEventListener("click", flip);
     selectedSquare(this)
+    flipNeighbors(this, parseFloat(this.dataset.x), parseFloat(this.dataset.x))
+}
+
+function removeClick(board) {
+    board.removeEventListener("click", flip);
+}
+
+function flipNeighbors(openCell, x, y) {
+
+    let cell = mines[x][y]
+    let board = document.querySelectorAll(`[data-x="${x}"][data-y="${y}"]`)[0];
+
+    if (mines[x][y] > -1 && openCell.dataset.isOpen != mineImage.isOpen && cell) {
+        board.classList.toggle("square--flip")
+        removeClick(board);
+        openCell.dataset.isOpen = mineImage.isOpen
+    } else {
+        return
+    }
+    if (cell > 0) {
+        return
+    }
+    if (isMine(x - 1, y)) flipNeighbors(openCell, x - 1, y);
+    if (isMine(x + 1, y)) flipNeighbors(openCell, x + 1, y);
+    if (isMine(x, y - 1)) flipNeighbors(openCell, x, y - 1);
+    if (isMine(x, y + 1)) flipNeighbors(openCell, x, y + 1);
+
+    if (isMine(x - 1, y - 1)) flipNeighbors(openCell, x - 1, y - 1);
+    if (isMine(x - 1, y + 1)) flipNeighbors(openCell, x - 1, y + 1);
+    if (isMine(x + 1, y + 1)) flipNeighbors(openCell, x + 1, y + 1);
+    if (isMine(x + 1, y - 1)) flipNeighbors(openCell, x + 1, y - 1);
 }
 
 function selectedSquare(selected) {
@@ -50,35 +89,49 @@ function gameOver() {
     window.location.href = "../Minesweeper/gameOver.html";
 }
 
-function createBomb() {
+function createBomb(x, y) {
     let square = document.createElement("div")
     square.className = "square"
     square.dataset.mine = mineImage.identifier
+    square.setAttribute("data-x", x)
+    square.setAttribute("data-y", y)
     console.log(square);
+
+    let front = document.createElement("img");
+    front.className = 'front--face';
+    square.appendChild(front)
 
     let back = document.createElement("img");
     back.className = 'back--face';
     back.src = mineImage.image
     square.appendChild(back)
+    return square
+}
+
+function createEmpty(mine, x, y) {
+    let square = document.createElement("div")
+    square.className = "square"
+    square.setAttribute("data-x", x)
+    square.setAttribute("data-y", y)
+    console.log(square);
 
     let front = document.createElement("img");
     front.className = 'front--face';
     square.appendChild(front)
-    return square
-}
-
-function createEmpty(mine) {
-    let square = document.createElement("div")
-    square.className = "square"
 
     let back = document.createElement("div");
     back.className = 'back--face';
     back.innerText = mine
     square.appendChild(back)
-
-    let front = document.createElement("img");
-    front.className = 'front--face';
-    square.appendChild(front)
+    mine == 0 ? back.style.color = "white" : 0
+    mine == 1 ? back.style.color = "#339933" : 0
+    mine == 2 ? back.style.color = "#cc6666" : 0
+    mine == 3 ? back.style.color = "#6600cc" : 0
+    mine == 4 ? back.style.color = "#cc00cc" : 0
+    mine == 5 ? back.style.color = "#ff3399" : 0
+    mine == 6 ? back.style.color = "#ffcc00" : 0
+    mine == 7 ? back.style.color = "#ff6600" : 0
+    mine == 8 ? back.style.color = "#ff0000" : 0
     return square
 }
 
@@ -102,6 +155,7 @@ function createMines() {
 
 (function initializeGame() {
     createMines()
+    coordinates()
     minesBuilder()
     console.log(mines);
 
@@ -119,5 +173,5 @@ function mineCounter(x, y) {
 }
 
 function isMine(x, y) {
-    return mines[y] && mines[x] && mines[x][y] > -1 && x >= 0 && y >= 0 && x < 9 && y < 9
+    return mines[x] && mines[x][y] !== undefined && mines[x][y] > -1
 }
