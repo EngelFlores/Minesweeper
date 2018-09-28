@@ -12,7 +12,7 @@ function minesBuilder() {
     mines.forEach(function (row, x) {
         row.forEach(function (mine, y) {
             let result = (mine == -1) ? createBomb(x, y) : createEmpty(mine, x, y);
-            result.addEventListener("click", flip);
+            result.addEventListener("click", flipFuncBuilder);
             minesBoard.appendChild(result);
         });
     });
@@ -26,41 +26,43 @@ function coordinates() {
     });
 }
 
-function flip() {
-    this.classList.toggle("square--flip");
-    this.removeEventListener("click", flip);
-    selectedSquare(this)
-    flipNeighbors(this, parseFloat(this.dataset.x), parseFloat(this.dataset.x))
+function flipFuncBuilder() {
+    flip(this);
+}
+
+function flip(element) {
+    element.classList.toggle("square--flip");
+    removeClick(element);
+    selectedSquare(element);
+    element.dataset.isOpen = mineImage.isOpen;
+    let x = parseFloat(element.dataset.x)
+    let y = parseFloat(element.dataset.y)
+    let cell = mines[x][y]
+
+    if (cell == 0) {
+        shouldOpen(x - 1, y)
+        shouldOpen(x + 1, y)
+        shouldOpen(x, y - 1)
+        shouldOpen(x, y + 1)
+        shouldOpen(x - 1, y - 1)
+        shouldOpen(x - 1, y + 1)
+        shouldOpen(x + 1, y + 1)
+        shouldOpen(x + 1, y - 1)
+    }
+}
+
+function shouldOpen(x, y) {
+    if (mines[x] && mines[x][y] !== undefined && mines[x][y] > -1) {
+        let item = document.querySelectorAll(`[data-x="${x}"][data-y="${y}"]`)[0];
+        if (!item.dataset.isOpen) {
+            return flip(item);
+        }
+    }
+    return;
 }
 
 function removeClick(board) {
-    board.removeEventListener("click", flip);
-}
-
-function flipNeighbors(openCell, x, y) {
-
-    let cell = mines[x][y]
-    let board = document.querySelectorAll(`[data-x="${x}"][data-y="${y}"]`)[0];
-
-    if (mines[x][y] > -1 && openCell.dataset.isOpen != mineImage.isOpen && cell) {
-        board.classList.toggle("square--flip")
-        removeClick(board);
-        openCell.dataset.isOpen = mineImage.isOpen
-    } else {
-        return
-    }
-    if (cell > 0) {
-        return
-    }
-    if (isMine(x - 1, y)) flipNeighbors(openCell, x - 1, y);
-    if (isMine(x + 1, y)) flipNeighbors(openCell, x + 1, y);
-    if (isMine(x, y - 1)) flipNeighbors(openCell, x, y - 1);
-    if (isMine(x, y + 1)) flipNeighbors(openCell, x, y + 1);
-
-    if (isMine(x - 1, y - 1)) flipNeighbors(openCell, x - 1, y - 1);
-    if (isMine(x - 1, y + 1)) flipNeighbors(openCell, x - 1, y + 1);
-    if (isMine(x + 1, y + 1)) flipNeighbors(openCell, x + 1, y + 1);
-    if (isMine(x + 1, y - 1)) flipNeighbors(openCell, x + 1, y - 1);
+    board.removeEventListener("click", flipFuncBuilder);
 }
 
 function selectedSquare(selected) {
@@ -77,7 +79,7 @@ function mineFound(selected) {
 }
 function contEmptySquare(cont) {
     if (cont == 71) {
-        gameWon()
+        setTimeout(gameWon, 1500);
     }
 }
 
@@ -95,7 +97,6 @@ function createBomb(x, y) {
     square.dataset.mine = mineImage.identifier
     square.setAttribute("data-x", x)
     square.setAttribute("data-y", y)
-    console.log(square);
 
     let front = document.createElement("img");
     front.className = 'front--face';
@@ -113,7 +114,6 @@ function createEmpty(mine, x, y) {
     square.className = "square"
     square.setAttribute("data-x", x)
     square.setAttribute("data-y", y)
-    console.log(square);
 
     let front = document.createElement("img");
     front.className = 'front--face';
